@@ -32,6 +32,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.*
+import android.app.Activity
+import android.content.Intent
+import android.net.Uri
+import android.os.PowerManager
+import android.provider.Settings
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowCompat
 import kotlin.math.abs
 import kotlin.random.Random
 
@@ -47,7 +55,18 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         Haptics.init(this)
+        WeatherWorker.schedule(this)          // background weather refresh every 30 min
+        askBackgroundUsage()
         setContent { WthrApp() }
+    }
+    /** One-time system prompt: allow Wthr to keep refreshing in the background. */
+    private fun askBackgroundUsage() {
+        val prefs = getSharedPreferences("wthr", 0)
+        val pm = getSystemService(PowerManager::class.java)
+        if (!pm.isIgnoringBatteryOptimizations(packageName) && !prefs.getBoolean("asked_bg", false)) {
+            prefs.edit().putBoolean("asked_bg", true).apply()
+            try { startActivity(Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, Uri.parse("package:$packageName"))) } catch (e: Exception) {}
+        }
     }
     override fun onPause() { super.onPause(); Haptics.cancel() }
 }
@@ -85,35 +104,39 @@ fun Txt(s: String, size: Int, color: Color, w: FontWeight = FontWeight.Black, mo
 fun WthrApp() {
     val pager = rememberPagerState { 3 }
     LaunchedEffect(pager.currentPage) { Haptics.tick() }
+    val view = LocalView.current
+    val page = pager.currentPage
+    SideEffect {
+        val win = (view.context as? Activity)?.window
+        if (win != null) WindowCompat.getInsetsController(win, view).apply {
+            isAppearanceLightStatusBars = page == 0; isAppearanceLightNavigationBars = page == 0 }
+    }
     HorizontalPager(pager, Modifier.fillMaxSize()) { p ->
         val active = pager.currentPage == p
         when (p) {
-            0 -> WeatherScreen(active) { /* arrows handled in screen */ }
+            0 -> WeatherScreen(active)
             1 -> WelcomeScreen(active)
             else -> FlightsScreen(active)
         }
     }
 }
 
-// ---------------- 1. WEATHER ----------------
-data class Wx(val temp: Int, val icons: List<String>, val temps: List<Int>)
-val wx = mapOf(
-    "WEATHER" to Wx(28, listOf("☁", "≋", "☀"), listOf(18, 21, 24)),
-    "NOW" to Wx(28, listOf("☁", "≋", "☀"), listOf(18, 21, 24)),
-    "CLOUDY" to Wx(23, listOf("☁", "☁", "☁"), listOf(17, 18, 19)),
-    "RAIN" to Wx(19, listOf("☂", "☂", "☁"), listOf(14, 15, 16)),
-    "CLEAR" to Wx(31, listOf("☀", "☀", "☀"), listOf(24, 27, 29)),
-    "FORECAST" to Wx(26, listOf("☀", "☁", "☂"), listOf(22, 20, 17)),
-)
-val hours = listOf(listOf("4 pm", "5 pm", "6 pm"), listOf("5 pm", "6 pm", "7 pm"), listOf("6 pm", "7 pm", "8 pm"))
+// ---------------- 1. WEATHER (white, live data for the user's country) ----------------
+val WordOff = Color(0xFFD9D3D3)
 
 @Composable
-fun WeatherScreen(active: Boolean, unused: () -> Unit) {
+fun WeatherScreen(active: Boolean) {
+    val ctx = LocalContext.current
+    var w by remember { mutableStateOf(WeatherRepo.cached(ctx)) }
+    LaunchedEffect(Unit) {
+        val fresh = withContext(Dispatchers.IO) { WeatherRepo.fetch(ctx) }
+        if (fresh != null) { w = fresh; WthrWidget.updateAll(ctx) }
+    }
     var sel by remember { mutableStateOf("NOW") }
-    var hourSet by remember { mutableIntStateOf(1) }
-    val data = wx.getValue(sel)
+    var hourSet by remember { mutableIntStateOf(0) }
+    LaunchedEffect(w?.kind) { sel = when (w?.kind) { 1 -> "RAIN"; 0, 2 -> "CLEAR"; 3 -> "CLOUDY"; else -> "NOW" } }
     val raining = active && sel == "RAIN"
-    val temp by animateIntAsState(data.temp, tween(700, easing = FastOutSlowInEasing), label = "t")
+    val temp by animateIntAsState(w?.temp ?: 0, tween(700, easing = FastOutSlowInEasing), label = "t")
     val enter = rememberBounce("w$active", active)
     val tap = rememberBounce(sel)
 
@@ -125,36 +148,41 @@ fun WeatherScreen(active: Boolean, unused: () -> Unit) {
             if (++n % 60 == 0) Haptics.rumble()
         }
     }
+    val hrs = w?.hours ?: List(9) { "--" }
+    val ht = w?.hTemps ?: List(9) { 0 }
+    val hc = w?.hCodes ?: List(9) { 0 }
+    val s0 = hourSet * 3
+    val place = w?.let { listOf(it.city, it.country).filter { x -> x.isNotBlank() }.joinToString(", ") } ?: "Locating…"
 
-    Column(Modifier.fillMaxSize().background(Maroon).statusBarsPadding()) {
-        Box(Modifier.fillMaxWidth().weight(1f).clip(RoundedCornerShape(bottomStart = 28.dp, bottomEnd = 28.dp))
-            .background(Red).padding(horizontal = 20.dp, vertical = 14.dp)) {
+    Column(Modifier.fillMaxSize().background(Color.White).statusBarsPadding()) {
+        Box(Modifier.fillMaxWidth().weight(1f).padding(horizontal = 20.dp, vertical = 14.dp)) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Txt("DESTINATION WEATHER", 11, Maroon, ls = 0f)
                 Txt("/001", 11, Maroon, ls = 0f)
             }
             if (raining) RainOverlay()
             Column(Modifier.align(Alignment.CenterStart).graphicsLayer { translationY = enter.value * 120f }) {
-                listOf("WEATHER", "NOW", "CLOUDY", "RAIN", "CLEAR", "FORECAST").forEach { w ->
-                    val on = w == sel
-                    Box(Modifier.pointerInput(w) { detectTapGestures { sel = w; Haptics.click() } }
-                        .graphicsLayer { val s = if (on) 1f + tap.value * 0.06f else 1f; scaleX = s; scaleY = s; transformOrigin = androidx.compose.ui.graphics.TransformOrigin(0f, .5f) }) {
-                        Txt(w, 66, if (on) Lilac else Maroon)
+                listOf("WEATHER", "NOW", "CLOUDY", "RAIN", "CLEAR", "FORECAST").forEach { word ->
+                    val on = word == sel
+                    Box(Modifier.pointerInput(word) { detectTapGestures { sel = word; Haptics.click() } }
+                        .graphicsLayer { val sc = if (on) 1f + tap.value * 0.06f else 1f; scaleX = sc; scaleY = sc; transformOrigin = androidx.compose.ui.graphics.TransformOrigin(0f, .5f) }) {
+                        Txt(word, 66, if (on) Maroon else WordOff)
                     }
                 }
             }
         }
         Column(Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 22.dp).navigationBarsPadding(), horizontalAlignment = Alignment.CenterHorizontally) {
-            Txt("$temp°", 34, Lilac, ls = 0f)
+            Txt(if (w == null) "--°" else "$temp°", 34, Maroon, ls = 0f)
+            Txt(place, 12, Maroon, FontWeight.Medium, Modifier.padding(top = 4.dp), 0f)
             Spacer(Modifier.height(14.dp))
             Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
                 RoundBtn("←") { hourSet = (hourSet + 2) % 3; Haptics.click() }
                 Column(Modifier.weight(1f)) {
-                    Row(Modifier.fillMaxWidth()) { hours[hourSet].forEach { Txt(it, 12, Lilac, FontWeight.Medium, Modifier.weight(1f), 0f, align = TextAlign.Center) } }
+                    Row(Modifier.fillMaxWidth()) { (0..2).forEach { Txt(hrs[s0 + it], 12, Maroon, FontWeight.Medium, Modifier.weight(1f), 0f, align = TextAlign.Center) } }
                     Spacer(Modifier.height(10.dp))
-                    Row(Modifier.fillMaxWidth()) { data.icons.forEach { Txt(it, 20, Lilac, FontWeight.Normal, Modifier.weight(1f), 0f, align = TextAlign.Center) } }
+                    Row(Modifier.fillMaxWidth()) { (0..2).forEach { Txt(glyph(kindOf(hc[s0 + it], w?.isDay ?: true)), 20, Maroon, FontWeight.Normal, Modifier.weight(1f), 0f, align = TextAlign.Center) } }
                     Spacer(Modifier.height(10.dp))
-                    Row(Modifier.fillMaxWidth()) { data.temps.map { it + hourSet }.forEach { Txt("$it°", 14, Lilac, FontWeight.ExtraBold, Modifier.weight(1f), 0f, align = TextAlign.Center) } }
+                    Row(Modifier.fillMaxWidth()) { (0..2).forEach { Txt("${ht[s0 + it]}°", 14, Maroon, FontWeight.ExtraBold, Modifier.weight(1f), 0f, align = TextAlign.Center) } }
                 }
                 RoundBtn("→") { hourSet = (hourSet + 1) % 3; Haptics.click() }
             }
@@ -166,7 +194,7 @@ fun WeatherScreen(active: Boolean, unused: () -> Unit) {
 fun RoundBtn(s: String, onClick: () -> Unit) {
     var down by remember { mutableStateOf(false) }
     val sc by animateFloatAsState(if (down) 0.82f else 1f, spring(0.3f, Spring.StiffnessMedium), label = "b")
-    Box(Modifier.size(38.dp).scale(sc).clip(CircleShape).background(Red)
+    Box(Modifier.size(38.dp).scale(sc).clip(CircleShape).background(Maroon)
         .pointerInput(Unit) { detectTapGestures(onPress = { down = true; tryAwaitRelease(); down = false }, onTap = { onClick() }) },
         contentAlignment = Alignment.Center) { Txt(s, 18, Lilac, ls = 0f) }
 }
@@ -179,7 +207,7 @@ fun RainOverlay() {
     Canvas(Modifier.fillMaxSize()) {
         drops.forEach { (x, o, sp) ->
             val y = ((t * sp * 0.9f + o) % 1f) * size.height
-            drawLine(Lilac.copy(alpha = 0.55f), Offset(x * size.width, y), Offset(x * size.width - 4f, y + 38f), 3f, StrokeCap.Round)
+            drawLine(Maroon.copy(alpha = 0.35f), Offset(x * size.width, y), Offset(x * size.width - 4f, y + 38f), 3f, StrokeCap.Round)
         }
     }
 }
