@@ -16,8 +16,8 @@ object Haptics {
         else @Suppress("DEPRECATION") c.getSystemService(Vibrator::class.java)
     }
 
-    private fun play(e: VibrationEffect) { try { v?.vibrate(e) } catch (_: Exception) {} }
-    fun cancel() { try { v?.cancel() } catch (_: Exception) {} }
+    private fun play(e: VibrationEffect) { try { v?.vibrate(e) } catch (e: Exception) {} }
+    fun cancel() { try { v?.cancel() } catch (e: Exception) {} }
 
     /** Light tap: selections, arrows, page change */
     fun tick() = play(
