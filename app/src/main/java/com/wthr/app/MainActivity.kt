@@ -154,9 +154,10 @@ fun WeatherScreen(active: Boolean) {
     val s0 = hourSet * 3
     val place = w?.let { listOf(it.city, it.country).filter { x -> x.isNotBlank() }.joinToString(", ") } ?: "Locating…"
 
-    Column(Modifier.fillMaxSize().background(Color.White).statusBarsPadding()) {
+    FrostedBackground(Modifier.fillMaxSize()) {
+    Column(Modifier.fillMaxSize().statusBarsPadding()) {
         Box(Modifier.fillMaxWidth().weight(1f).padding(horizontal = 20.dp, vertical = 14.dp)) {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Row(Modifier.fillMaxWidth().glass(RoundedCornerShape(50), a = 0.5f).padding(horizontal = 16.dp, vertical = 9.dp), horizontalArrangement = Arrangement.SpaceBetween) {
                 Txt("DESTINATION WEATHER", 11, Maroon, ls = 0f)
                 Txt("/001", 11, Maroon, ls = 0f)
             }
@@ -173,9 +174,9 @@ fun WeatherScreen(active: Boolean) {
         }
         Column(Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 22.dp).navigationBarsPadding(), horizontalAlignment = Alignment.CenterHorizontally) {
             Txt(if (w == null) "--°" else "$temp°", 34, Maroon, ls = 0f)
-            Txt(place, 12, Maroon, FontWeight.Medium, Modifier.padding(top = 4.dp), 0f)
+            Txt(place, 12, Maroon, FontWeight.Medium, Modifier.padding(top = 6.dp).glass(RoundedCornerShape(50), a = 0.5f).padding(horizontal = 14.dp, vertical = 6.dp), 0f)
             Spacer(Modifier.height(14.dp))
-            Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
+            Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp).glass(RoundedCornerShape(30.dp)).padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
                 RoundBtn("←") { hourSet = (hourSet + 2) % 3; Haptics.click() }
                 Column(Modifier.weight(1f)) {
                     Row(Modifier.fillMaxWidth()) { (0..2).forEach { Txt(hrs[s0 + it], 12, Maroon, FontWeight.Medium, Modifier.weight(1f), 0f, align = TextAlign.Center) } }
@@ -188,13 +189,14 @@ fun WeatherScreen(active: Boolean) {
             }
         }
     }
+    }
 }
 
 @Composable
 fun RoundBtn(s: String, onClick: () -> Unit) {
     var down by remember { mutableStateOf(false) }
     val sc by animateFloatAsState(if (down) 0.82f else 1f, spring(0.3f, Spring.StiffnessMedium), label = "b")
-    Box(Modifier.size(38.dp).scale(sc).clip(CircleShape).background(Maroon)
+    Box(Modifier.size(38.dp).scale(sc).glass(CircleShape, Maroon, 0.8f)
         .pointerInput(Unit) { detectTapGestures(onPress = { down = true; tryAwaitRelease(); down = false }, onTap = { onClick() }) },
         contentAlignment = Alignment.Center) { Txt(s, 18, Lilac, ls = 0f) }
 }
@@ -236,8 +238,7 @@ fun WelcomeScreen(active: Boolean) {
             }
         }
         Spacer(Modifier.height(14.dp))
-        Column(Modifier.fillMaxWidth().weight(1f).clip(RoundedCornerShape(topStart = 26.dp, topEnd = 26.dp))
-            .background(Brown).padding(18.dp).navigationBarsPadding(), verticalArrangement = Arrangement.SpaceBetween) {
+        Column(Modifier.fillMaxWidth().weight(1f).glass(RoundedCornerShape(topStart = 26.dp, topEnd = 26.dp), Color.White, 0.16f).padding(18.dp).navigationBarsPadding(), verticalArrangement = Arrangement.SpaceBetween) {
             Column {
                 Txt("Arrival in", 11, Cream, FontWeight.Medium, ls = 0f)
                 Row(verticalAlignment = Alignment.Bottom) {
@@ -323,11 +324,11 @@ fun FlightsScreen(active: Boolean) {
 }
 
 @Composable fun Circle(c: @Composable ColumnScope.() -> Unit) =
-    Column(Modifier.size(84.dp).clip(CircleShape).background(TealLight), Arrangement.Center, Alignment.CenterHorizontally, content = c)
+    Column(Modifier.size(84.dp).glass(CircleShape, Color.White, 0.3f), Arrangement.Center, Alignment.CenterHorizontally, content = c)
 
 @Composable
 fun GateCard(open: Boolean, onArrow: () -> Unit) {
-    Box(Modifier.size(width = 140.dp, height = 190.dp).clip(RoundedCornerShape(16.dp)).background(Color.White)) {
+    Box(Modifier.size(width = 140.dp, height = 190.dp).glass(RoundedCornerShape(16.dp), Color.White, 0.75f)) {
         Box(Modifier.padding(10.dp).size(6.dp).clip(CircleShape).background(TealDark).border(1.dp, TealLight, CircleShape))
         Box(Modifier.align(Alignment.TopEnd).padding(8.dp).size(24.dp).clip(CircleShape).background(TealDark)
             .pointerInput(Unit) { detectTapGestures { onArrow() } }, contentAlignment = Alignment.Center) { Txt("↗", 11, Color.White, ls = 0f) }

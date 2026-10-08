@@ -17,3 +17,6 @@ Weather app UI (Jetpack Compose): Weather, Welcome boarding pass, Upcoming Fligh
 - Country/city come from the network location (ipwho.is); weather from Open-Meteo (no API key).
 - WorkManager refreshes every 30 minutes in the background and updates the widget. Tap the widget to refresh now.
 - The app asks once to be exempt from battery optimisation so refreshes are not delayed.
+
+## Glass UI
+`Glass.kt`: `Modifier.glass()` (translucent gradient, bright edge, soft shadow) and `FrostedBackground` (white haze with drifting pastel light). Used on the weather, welcome and flights screens.
