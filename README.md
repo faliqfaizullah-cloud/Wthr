@@ -20,3 +20,8 @@ Weather app UI (Jetpack Compose): Weather, Welcome boarding pass, Upcoming Fligh
 
 ## Glass UI
 `Glass.kt`: `Modifier.glass()` (translucent gradient, bright edge, soft shadow) and `FrostedBackground` (white haze with drifting pastel light). Used on the weather, welcome and flights screens.
+
+## Widgets
+- **Wthr 2×2** (doodle): Sunny / Rain / Clear / Cloudy cards.
+- **Wthr Text 2×2** (black sentence): "24° now in New York feels 18° rain next 2 hrs", live for your location.
+Both: 28dp corners, 2×2 only, tap to refresh, updated in the background every 30 minutes.
