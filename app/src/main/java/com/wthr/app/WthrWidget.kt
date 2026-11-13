@@ -33,6 +33,7 @@ class WthrWidget : AppWidgetProvider() {
             val m = AppWidgetManager.getInstance(c)
             m.getAppWidgetIds(ComponentName(c, WthrWidget::class.java)).forEach { render(c, m, it) }
             WthrTextWidget.updateAll(c)
+            WthrPhotoWidget.updateAll(c)
         }
 
         fun render(c: Context, m: AppWidgetManager, id: Int) {

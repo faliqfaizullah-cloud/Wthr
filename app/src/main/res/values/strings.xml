@@ -1,2 +1,2 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources><string name="widget_desc">Live weather for your location. Tap to refresh.</string><string name="widget_text_desc">Live sentence: temperature, city, feels like and the next 2 hours. Tap to refresh.</string></resources>
+<resources><string name="widget_desc">Live weather for your location. Tap to refresh.</string><string name="widget_text_desc">Live sentence: temperature, city, feels like and the next 2 hours. Tap to refresh.</string><string name="widget_photo_desc">Big live temperature over a morning or night sky. Tap to refresh.</string></resources>
