@@ -35,12 +35,9 @@ class WthrPhotoWidget : AppWidgetProvider() {
         }
 
         fun render(c: Context, m: AppWidgetManager, id: Int) {
-            val d = c.resources.displayMetrics.density
-            val o = m.getAppWidgetOptions(id)
-            val dp = minOf(o.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 110), o.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 110)).coerceAtLeast(110)
-            val px = (dp * d).toInt().coerceAtMost(520)
+            val spec = CardShape.size(c, m, id)
             val rv = RemoteViews(c.packageName, R.layout.widget_wthr)
-            rv.setImageViewBitmap(R.id.widget_img, draw(c, px, 28f * px / dp, WeatherRepo.cached(c)))
+            rv.setImageViewBitmap(R.id.widget_img, draw(c, spec, WeatherRepo.cached(c)))
             val pi = PendingIntent.getBroadcast(c, 2, Intent(c, WthrPhotoWidget::class.java).setAction(WthrWidget.ACTION_REFRESH), PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
             rv.setOnClickPendingIntent(R.id.widget_root, pi)
             m.updateAppWidget(id, rv)
@@ -52,14 +49,14 @@ class WthrPhotoWidget : AppWidgetProvider() {
         }
 
         // Everything is laid out on the 409x409 grid of the reference artwork, then scaled to the widget.
-        private fun draw(c: Context, px: Int, radiusPx: Float, w: Weather?): Bitmap {
+        private fun draw(c: Context, spec: CardShape.Spec, w: Weather?): Bitmap {
             val day = w?.isDay ?: true
             val sky = load(c, if (day) R.drawable.w3_sky_day else R.drawable.w3_sky_night)
             val fg = load(c, if (day) R.drawable.w3_fg_day else R.drawable.w3_fg_night)
-            val bmp = Bitmap.createBitmap(px, px, Bitmap.Config.ARGB_8888)
+            val bmp = Bitmap.createBitmap(spec.w, spec.h, Bitmap.Config.ARGB_8888)
             val cv = Canvas(bmp)
-            cv.clipPath(Path().apply { addRoundRect(RectF(0f, 0f, px.toFloat(), px.toFloat()), radiusPx, radiusPx, Path.Direction.CW) })
-            cv.scale(px / 409f, px / 409f)
+            cv.clipPath(CardShape.path(spec))
+            CardShape.fit(cv, spec, 409f, 0.5f)
             val fp = Paint(Paint.FILTER_BITMAP_FLAG or Paint.ANTI_ALIAS_FLAG)
             cv.drawBitmap(sky, 0f, 0f, fp)
 
@@ -78,7 +75,7 @@ class WthrPhotoWidget : AppWidgetProvider() {
             val t = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.WHITE; typeface = c.resources.getFont(R.font.inter_semibold); textAlign = Paint.Align.CENTER }
             val city = (w?.city ?: "").ifBlank { w?.country ?: "" }.ifBlank { "Wthr" }
             t.textSize = 29.5f
-            while (t.measureText(city) > 280f && t.textSize > 14f) t.textSize -= 0.5f
+            while (t.measureText(city) > minOf(280f, 409f * spec.w / spec.h - 50f) && t.textSize > 14f) t.textSize -= 0.5f
             cv.drawText(city, 204.5f, 53.5f, t)
             t.textSize = 30f
             cv.drawText(if (w == null) "H: --°  L: --°" else "H: ${w.hi}°  L: ${w.lo}°", 204.5f, 364.5f, t)

@@ -27,3 +27,6 @@ Weather app UI (Jetpack Compose): Weather, Welcome boarding pass, Upcoming Fligh
 Both: 28dp corners, 2×2 only, tap to refresh, updated in the background every 30 minutes.
 
 - **Wthr Photo 2×2**: big live temperature behind a church/tulip photo layer; blue morning sky by day, starry sky at night (uses the live sunrise/sunset). Fonts: Inter (SIL OFL).
+
+## Widget shape
+All widgets use `CardShape.kt`: a rounded rectangle 584 x 645 (taller than wide), corner radius 19.63% of the width (= 28dp on a standard 2x2 widget). Designs are scaled to the card height and cropped sideways.

@@ -37,26 +37,23 @@ class WthrWidget : AppWidgetProvider() {
         }
 
         fun render(c: Context, m: AppWidgetManager, id: Int) {
-            val d = c.resources.displayMetrics.density
-            val o = m.getAppWidgetOptions(id)
-            val dp = minOf(o.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 110), o.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 110)).coerceAtLeast(110)
-            val px = (dp * d).toInt().coerceAtMost(520)
+            val spec = CardShape.size(c, m, id)
             val rv = RemoteViews(c.packageName, R.layout.widget_wthr)
-            rv.setImageViewBitmap(R.id.widget_img, draw(px, 28f * px / dp, WeatherRepo.cached(c)))
+            rv.setImageViewBitmap(R.id.widget_img, draw(spec, WeatherRepo.cached(c)))
             val pi = PendingIntent.getBroadcast(c, 0, Intent(c, WthrWidget::class.java).setAction(ACTION_REFRESH), PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
             rv.setOnClickPendingIntent(R.id.widget_root, pi)
             m.updateAppWidget(id, rv)
         }
 
         // ---- drawing, on a 100x100 unit grid so it scales with the widget ----
-        private fun draw(px: Int, radiusPx: Float, w: Weather?): Bitmap {
+        private fun draw(spec: CardShape.Spec, w: Weather?): Bitmap {
             val kind = w?.kind ?: 0
-            val bmp = Bitmap.createBitmap(px, px, Bitmap.Config.ARGB_8888)
-            val cv = Canvas(bmp); val s = px / 100f
-            cv.clipPath(Path().apply { addRoundRect(RectF(0f, 0f, px.toFloat(), px.toFloat()), radiusPx, radiusPx, Path.Direction.CW) })
+            val bmp = Bitmap.createBitmap(spec.w, spec.h, Bitmap.Config.ARGB_8888)
+            val cv = Canvas(bmp)
+            cv.clipPath(CardShape.path(spec))
             cv.drawColor(intArrayOf(0xFFFFFFFF.toInt(), 0xFF3E4046.toInt(), 0xFF14151A.toInt(), 0xFF3E4046.toInt())[kind])
             val fg = if (kind == 0) Color.BLACK else Color.WHITE
-            cv.scale(s, s)
+            CardShape.fit(cv, spec, 100f, 1f)
             when (kind) { 0 -> sunDoodle(cv); 1 -> rainDoodle(cv, true); 2 -> clearDoodle(cv); else -> rainDoodle(cv, false) }
 
             val city = (w?.city ?: "Wthr").ifBlank { w?.country ?: "Wthr" }

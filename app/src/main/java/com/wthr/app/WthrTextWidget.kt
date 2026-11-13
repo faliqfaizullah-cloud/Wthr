@@ -35,27 +35,24 @@ class WthrTextWidget : AppWidgetProvider() {
         }
 
         fun render(c: Context, m: AppWidgetManager, id: Int) {
-            val d = c.resources.displayMetrics.density
-            val o = m.getAppWidgetOptions(id)
-            val dp = minOf(o.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 110), o.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 110)).coerceAtLeast(110)
-            val px = (dp * d).toInt().coerceAtMost(520)
+            val spec = CardShape.size(c, m, id)
             val rv = RemoteViews(c.packageName, R.layout.widget_wthr)
-            rv.setImageViewBitmap(R.id.widget_img, draw(px, 28f * px / dp, WeatherRepo.cached(c)))
+            rv.setImageViewBitmap(R.id.widget_img, draw(spec, WeatherRepo.cached(c)))
             val pi = PendingIntent.getBroadcast(c, 1, Intent(c, WthrTextWidget::class.java).setAction(WthrWidget.ACTION_REFRESH), PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
             rv.setOnClickPendingIntent(R.id.widget_root, pi)
             m.updateAppWidget(id, rv)
         }
 
         // 100x100 unit grid; line centres and left margin measured from the reference picture
-        private fun draw(px: Int, radiusPx: Float, w: Weather?): Bitmap {
-            val bmp = Bitmap.createBitmap(px, px, Bitmap.Config.ARGB_8888)
-            val cv = Canvas(bmp); val s = px / 100f
-            cv.clipPath(Path().apply { addRoundRect(RectF(0f, 0f, px.toFloat(), px.toFloat()), radiusPx, radiusPx, Path.Direction.CW) })
-            cv.drawPaint(Paint().apply { shader = LinearGradient(0f, 0f, 0f, px.toFloat(), 0xFF171717.toInt(), 0xFF0A0A0A.toInt(), Shader.TileMode.CLAMP) })
-            cv.scale(s, s)
+        private fun draw(spec: CardShape.Spec, w: Weather?): Bitmap {
+            val bmp = Bitmap.createBitmap(spec.w, spec.h, Bitmap.Config.ARGB_8888)
+            val cv = Canvas(bmp)
+            cv.clipPath(CardShape.path(spec))
+            cv.drawPaint(Paint().apply { shader = LinearGradient(0f, 0f, 0f, spec.h.toFloat(), 0xFF171717.toInt(), 0xFF0A0A0A.toInt(), Shader.TileMode.CLAMP) })
+            CardShape.fit(cv, spec, 100f, 0f)
 
             val t = Paint(Paint.ANTI_ALIAS_FLAG).apply { typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL); letterSpacing = -0.02f }
-            val x0 = 12.7f; val maxW = 100f - 2 * x0 + 2f
+            val x0 = 12.7f; val maxW = 100f * spec.w / spec.h - x0 - 7f
 
             fun line(cy: Float, segs: List<Pair<String, Int>>, icon: Int = -1) {
                 var size = 13.3f
