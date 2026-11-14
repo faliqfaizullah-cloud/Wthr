@@ -111,13 +111,18 @@ fun WthrApp() {
         if (win != null) WindowCompat.getInsetsController(win, view).apply {
             isAppearanceLightStatusBars = page == 0; isAppearanceLightNavigationBars = page == 0 }
     }
-    HorizontalPager(pager, Modifier.fillMaxSize()) { p ->
-        val active = pager.currentPage == p
-        when (p) {
-            0 -> WeatherScreen(active)
-            1 -> WelcomeScreen(active)
-            else -> FlightsScreen(active)
+    val appCtx = LocalContext.current
+    LaunchedEffect(Unit) { Updater.check(appCtx, false) }      // quiet check on every launch
+    Box(Modifier.fillMaxSize()) {
+        HorizontalPager(pager, Modifier.fillMaxSize()) { p ->
+            val active = pager.currentPage == p
+            when (p) {
+                0 -> WeatherScreen(active)
+                1 -> WelcomeScreen(active)
+                else -> FlightsScreen(active)
+            }
         }
+        Box(Modifier.align(Alignment.TopCenter)) { UpdateBanner() }
     }
 }
 
@@ -175,6 +180,7 @@ fun WeatherScreen(active: Boolean) {
         Column(Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 22.dp).navigationBarsPadding(), horizontalAlignment = Alignment.CenterHorizontally) {
             Txt(if (w == null) "--°" else "$temp°", 34, Maroon, ls = 0f)
             Txt(place, 12, Maroon, FontWeight.Medium, Modifier.padding(top = 6.dp).glass(RoundedCornerShape(50), a = 0.5f).padding(horizontal = 14.dp, vertical = 6.dp), 0f)
+            UpdateChip()
             Spacer(Modifier.height(14.dp))
             Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp).glass(RoundedCornerShape(30.dp)).padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
                 RoundBtn("←") { hourSet = (hourSet + 2) % 3; Haptics.click() }

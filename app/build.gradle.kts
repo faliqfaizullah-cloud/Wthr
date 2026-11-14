@@ -5,9 +5,16 @@ android {
     defaultConfig {
         applicationId = "com.wthr.app"
         minSdk = 26; targetSdk = 34
-        versionCode = 1; versionName = "1.0.0"
+        versionCode = (project.findProperty("wthrVersionCode") as String?)?.toInt() ?: 1
+        versionName = (project.findProperty("wthrVersionName") as String?) ?: "1.0.0"
     }
-    buildTypes { release { isMinifyEnabled = false; signingConfig = signingConfigs.getByName("debug") } }
+    signingConfigs {
+        create("release") {
+            storeFile = rootProject.file("wthr-release.p12"); storePassword = "wthrRelease2026"
+            keyAlias = "wthr"; keyPassword = "wthrRelease2026"; storeType = "pkcs12"
+        }
+    }
+    buildTypes { release { isMinifyEnabled = false; signingConfig = signingConfigs.getByName("release") } }
     compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
     kotlinOptions { jvmTarget = "17"; freeCompilerArgs += listOf("-opt-in=androidx.compose.foundation.ExperimentalFoundationApi", "-opt-in=androidx.compose.animation.ExperimentalAnimationApi", "-opt-in=androidx.compose.ui.ExperimentalComposeUiApi") }
     buildFeatures { compose = true }

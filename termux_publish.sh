@@ -4,8 +4,7 @@ set -e
 pkg update -y && pkg install -y git gh
 gh auth status >/dev/null 2>&1 || gh auth login
 [ -d .git ] || git init -b main
-git add -A && git commit -m "Wthr weather app" || true
+git add -A && git commit -m "${1:-Wthr update}" || true
 gh repo view wthr >/dev/null 2>&1 || gh repo create wthr --public --source=. --remote=origin
 git push -u origin main
-git tag -f v1.0.0 && git push -f origin v1.0.0
-echo "Done. GitHub Actions builds Wthr.apk; it appears under Releases in ~5 min."
+echo "Done. GitHub builds a new numbered release automatically (about 5 minutes). Update from inside the app."

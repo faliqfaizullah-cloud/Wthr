@@ -2,7 +2,6 @@ name: Build Wthr APK
 on:
   push:
     branches: [main]
-    tags: ['v*']
   workflow_dispatch:
 permissions:
   contents: write
@@ -15,10 +14,17 @@ jobs:
         with: { distribution: temurin, java-version: '17' }
       - uses: gradle/actions/setup-gradle@v4
         with: { gradle-version: '8.7' }
-      - run: gradle assembleRelease --no-daemon
+      - run: gradle assembleRelease --no-daemon -PwthrVersionCode=${{ github.run_number }} -PwthrVersionName=1.2.${{ github.run_number }}
       - run: cp app/build/outputs/apk/release/app-release.apk Wthr.apk
       - uses: actions/upload-artifact@v4
         with: { name: Wthr-apk, path: Wthr.apk }
       - uses: softprops/action-gh-release@v2
-        if: startsWith(github.ref, 'refs/tags/')
-        with: { files: Wthr.apk }
+        with:
+          tag_name: v1.2.${{ github.run_number }}
+          name: Wthr 1.2.${{ github.run_number }}
+          target_commitish: ${{ github.sha }}
+          make_latest: true
+          files: Wthr.apk
+          body: |
+            versionCode=${{ github.run_number }}
+            Wthr 1.2.${{ github.run_number }} - update from inside the app (no need to uninstall).

@@ -36,3 +36,8 @@ All widgets use `CardShape.kt`: a rounded rectangle 584 x 645 (taller than wide)
 - Realistic styling: time-of-day sky (dawn, day, golden hour, sunset, twilight, night), sun and a moon with real phase, depth haze, glass facades with sky reflection and window grids, lit windows at night.
 - Animation (`Fx.kt`, two ViewFlippers): drifting volumetric clouds, mist, sun glow and lens flare, twinkling stars and windows, blinking aviation lights, Merdeka 118 LED crown; rain with splashes, thunderstorm with lightning, snow.
 - `Ticker.kt` re-schedules a 5-minute alarm (inexact, may be delayed by battery saver).
+
+## In-app updates
+- Every push to `main` builds and publishes a numbered release (`v1.2.N`, versionCode = N) signed with the same key (`wthr-release.p12`).
+- The app checks the latest release on launch (and on tap) and installs it as an update over the current app. No uninstall.
+- Note: the keystore is committed so CI always signs with the same key; keep the repo for personal use.
