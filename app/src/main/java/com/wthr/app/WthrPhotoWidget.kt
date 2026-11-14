@@ -8,6 +8,7 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.*
 
+import android.view.View
 import android.widget.RemoteViews
 
 /**
@@ -42,9 +43,13 @@ class WthrPhotoWidget : AppWidgetProvider() {
             val rv = RemoteViews(c.packageName, R.layout.widget_photo)
             rv.setImageViewBitmap(R.id.widget_img, draw(c, spec, w))
             val cond = if (w == null) 5 else condOf(w.code, w.isDay)
-            val frames = Fx.frames(spec, cond, w?.code ?: 3, w?.isDay ?: true)
-            val ids = intArrayOf(R.id.anim_0, R.id.anim_1, R.id.anim_2, R.id.anim_3, R.id.anim_4, R.id.anim_5, R.id.anim_6, R.id.anim_7)
-            frames.forEachIndexed { i, bm -> rv.setImageViewBitmap(ids[i], bm) }
+            val day = w?.isDay ?: true
+            val fx = Fx.build(c, spec, cond, w?.code ?: 3, day, Skyline.sceneNow())
+            val slowIds = intArrayOf(R.id.anim_s0, R.id.anim_s1, R.id.anim_s2, R.id.anim_s3, R.id.anim_s4, R.id.anim_s5, R.id.anim_s6, R.id.anim_s7)
+            val fastIds = intArrayOf(R.id.anim_f0, R.id.anim_f1, R.id.anim_f2, R.id.anim_f3, R.id.anim_f4, R.id.anim_f5, R.id.anim_f6, R.id.anim_f7, R.id.anim_f8, R.id.anim_f9, R.id.anim_f10, R.id.anim_f11)
+            fx.slow.forEachIndexed { i, bm -> rv.setImageViewBitmap(slowIds[i], bm) }
+            fx.fast.forEachIndexed { i, bm -> rv.setImageViewBitmap(fastIds[i], bm) }
+            rv.setViewVisibility(R.id.anim_fast, if (fx.fast.isEmpty()) View.GONE else View.VISIBLE)
             val pi = PendingIntent.getBroadcast(c, 2, Intent(c, WthrPhotoWidget::class.java).setAction(WthrWidget.ACTION_REFRESH), PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
             rv.setOnClickPendingIntent(R.id.widget_root, pi)
             m.updateAppWidget(id, rv)
@@ -85,7 +90,7 @@ class WthrPhotoWidget : AppWidgetProvider() {
                 cv.drawText(num, 208f, 282f, big)
                 big.clearShadowLayer()
                 Skyline.landmark(cv, scene, day, cond)
-                Skyline.foreground(cv, day, cond)
+                Skyline.foreground(cv, day, cond, scene)
             }
 
             // 3) city and high / low

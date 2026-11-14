@@ -32,6 +32,7 @@ Both: 28dp corners, 2×2 only, tap to refresh, updated in the background every 3
 All widgets use `CardShape.kt`: a rounded rectangle 584 x 645 (taller than wide), corner radius 19.63% of the width (= 28dp on a standard 2x2 widget). Designs are scaled to the card height and cropped sideways.
 
 ## Skyline scenes + animated weather (Photo widget)
-- Scenes change every 5 minutes: Moscow photo, KLCC (Kuala Lumpur), Burj Khalifa, Taipei 101, Shanghai, Empire State, One WTC, The Shard, CN Tower. Drawn in code (`Skyline.kt`).
-- Animated overlay (`Fx.kt`, played by a ViewFlipper): rain, storm + lightning, snow, sunny glow, twinkling stars, drifting clouds, from the real weather code.
+- 10 scenes, one every 5 minutes: Moscow photo, KLCC, Merdeka 118, Burj Khalifa, Taipei 101, Shanghai, Empire State, One WTC, The Shard, CN Tower (`Skyline.kt`, drawn in code).
+- Realistic styling: time-of-day sky (dawn, day, golden hour, sunset, twilight, night), sun and a moon with real phase, depth haze, glass facades with sky reflection and window grids, lit windows at night.
+- Animation (`Fx.kt`, two ViewFlippers): drifting volumetric clouds, mist, sun glow and lens flare, twinkling stars and windows, blinking aviation lights, Merdeka 118 LED crown; rain with splashes, thunderstorm with lightning, snow.
 - `Ticker.kt` re-schedules a 5-minute alarm (inexact, may be delayed by battery saver).

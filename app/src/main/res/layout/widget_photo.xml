@@ -3,15 +3,30 @@
     android:id="@+id/widget_root" android:layout_width="match_parent" android:layout_height="match_parent">
     <ImageView android:id="@+id/widget_img" android:layout_width="match_parent" android:layout_height="match_parent"
         android:scaleType="fitCenter" android:contentDescription="Wthr photo weather widget"/>
-    <ViewFlipper android:id="@+id/widget_anim" android:layout_width="match_parent" android:layout_height="match_parent"
-        android:autoStart="true" android:flipInterval="110">
-        <ImageView android:id="@+id/anim_0" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitCenter"/>
-        <ImageView android:id="@+id/anim_1" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitCenter"/>
-        <ImageView android:id="@+id/anim_2" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitCenter"/>
-        <ImageView android:id="@+id/anim_3" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitCenter"/>
-        <ImageView android:id="@+id/anim_4" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitCenter"/>
-        <ImageView android:id="@+id/anim_5" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitCenter"/>
-        <ImageView android:id="@+id/anim_6" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitCenter"/>
-        <ImageView android:id="@+id/anim_7" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitCenter"/>
+    <ViewFlipper android:id="@+id/anim_slow" android:layout_width="match_parent" android:layout_height="match_parent"
+        android:autoStart="true" android:flipInterval="420">
+        <ImageView android:id="@+id/anim_s0" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitCenter"/>
+        <ImageView android:id="@+id/anim_s1" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitCenter"/>
+        <ImageView android:id="@+id/anim_s2" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitCenter"/>
+        <ImageView android:id="@+id/anim_s3" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitCenter"/>
+        <ImageView android:id="@+id/anim_s4" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitCenter"/>
+        <ImageView android:id="@+id/anim_s5" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitCenter"/>
+        <ImageView android:id="@+id/anim_s6" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitCenter"/>
+        <ImageView android:id="@+id/anim_s7" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitCenter"/>
+    </ViewFlipper>
+    <ViewFlipper android:id="@+id/anim_fast" android:layout_width="match_parent" android:layout_height="match_parent"
+        android:autoStart="true" android:flipInterval="70">
+        <ImageView android:id="@+id/anim_f0" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitCenter"/>
+        <ImageView android:id="@+id/anim_f1" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitCenter"/>
+        <ImageView android:id="@+id/anim_f2" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitCenter"/>
+        <ImageView android:id="@+id/anim_f3" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitCenter"/>
+        <ImageView android:id="@+id/anim_f4" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitCenter"/>
+        <ImageView android:id="@+id/anim_f5" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitCenter"/>
+        <ImageView android:id="@+id/anim_f6" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitCenter"/>
+        <ImageView android:id="@+id/anim_f7" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitCenter"/>
+        <ImageView android:id="@+id/anim_f8" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitCenter"/>
+        <ImageView android:id="@+id/anim_f9" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitCenter"/>
+        <ImageView android:id="@+id/anim_f10" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitCenter"/>
+        <ImageView android:id="@+id/anim_f11" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitCenter"/>
     </ViewFlipper>
 </FrameLayout>
